@@ -1,7 +1,7 @@
-# openhost-gemini
+# bottled-gemini
 
 A [Gemini protocol](https://geminiprotocol.net/) capsule, packaged
-as an OpenHost app. Built around [agate](https://github.com/mbrubeck/agate),
+as a Cloud in a Bottle app. Built around [agate](https://github.com/mbrubeck/agate),
 with a built-in source editor for the capsule's gemtext pages.
 
 ## What you get
@@ -10,11 +10,11 @@ with a built-in source editor for the capsule's gemtext pages.
   (conventionally `gemini://gemini.<zone>/`).
 - A public HTTPS landing page at `https://<app-name>.<zone-domain>/`
   that explains what a Gemini capsule is and how to install a Gemini
-  client. Reachable without an OpenHost session so visitors who
+  client. Reachable without a Cloud in a Bottle session so visitors who
   follow a link to the HTTPS URL learn what to do.
 - A gemtext source editor at `https://<app-name>.<zone-domain>/edit`
   for managing the capsule's pages from the browser. Behind the
-  OpenHost session, so only the compute-space owner can use it.
+  Cloud in a Bottle session, so only the compute-space owner can use it.
   The owner sees an extra "Open editor" card on the landing page
   for discoverability; anonymous visitors don't.
 - Persistent content under `$OPENHOST_APP_DATA_DIR/content/` that
@@ -25,7 +25,7 @@ with a built-in source editor for the capsule's gemtext pages.
 ## Deploying
 
 ```
-oh app deploy https://github.com/imbue-openhost/openhost-gemini --wait
+oh app deploy https://github.com/imbue-openhost/bottled-gemini --wait
 ```
 
 The capsule is immediately reachable after the container starts on
@@ -33,22 +33,22 @@ The capsule is immediately reachable after the container starts on
 you to trust the self-signed certificate (Trust On First Use); that
 is normal and standard for Gemini.
 
-Sign in to your OpenHost compute space, then visit
+Sign in to your Cloud in a Bottle compute space, then visit
 `https://<app-name>.<zone-domain>/edit` to start editing pages.
 
 ## Port layout
 
-- `1965/tcp`, published on the host by OpenHost — the Gemini
+- `1965/tcp`, published on the host by Cloud in a Bottle — the Gemini
   protocol itself. Raw TLS-wrapped TCP; does not go through the
-  OpenHost HTTP router.
+  Cloud in a Bottle HTTP router.
 - `8080/tcp` (container-internal) — HTTP sidecar (landing,
-  health-check, editor), reached via the OpenHost router at
+  health-check, editor), reached via the Cloud in a Bottle router at
   `https://<app-name>.<zone>/`.
 
-The Gemini port is published directly by OpenHost so any Gemini
+The Gemini port is published directly by Cloud in a Bottle so any Gemini
 client on the public internet can reach the capsule (the normal
 model for a Gemini capsule). The HTTP side is gated behind the
-OpenHost session.
+Cloud in a Bottle session.
 
 ## Editor
 
@@ -76,7 +76,7 @@ The file API the editor uses is also addressable directly:
 All file API endpoints other than `DELETE` (which returns `204 No
 Content` on success) produce JSON. All endpoints are confined to the
 content dir (path traversal and symlinks rejected), and all require
-an OpenHost session.
+a Cloud in a Bottle session.
 
 ## Customising
 
@@ -105,7 +105,7 @@ disk); your edits survive container rebuilds.
 
 ## Files
 
-- `openhost.toml` — OpenHost manifest.
+- `openhost.toml` — Cloud in a Bottle manifest.
 - `Dockerfile` — Debian slim + agate (sha256-pinned upstream
   release) + Python 3 + Starlette + Uvicorn for the sidecar.
 - `start.sh` — bridge entrypoint. Resolves the hostname, seeds the
@@ -121,7 +121,7 @@ disk); your edits survive container rebuilds.
 
 ## Security
 
-- The Gemini port (1965) is publicly reachable with no OpenHost auth
+- The Gemini port (1965) is publicly reachable with no Cloud in a Bottle auth
   gate -- this is the normal access model for a Gemini capsule. Do
   not put anything sensitive in the content dir.
 - The HTTPS landing page at `/` and the health endpoint `/healthz`
@@ -130,17 +130,17 @@ disk); your edits survive container rebuilds.
   landing page does not link to or hint at the editor.
 - The editor at `/edit` and the file API under `/api/files/...`
   are gated by the sidecar itself: it accepts these requests only
-  when OpenHost has stamped the proxied request with
-  `X-OpenHost-Is-Owner: true`, which OpenHost adds for the
+  when Cloud in a Bottle has stamped the proxied request with
+  `X-OpenHost-Is-Owner: true`, which Cloud in a Bottle adds for the
   authenticated compute-space owner. Anonymous browser requests get
-  redirected to the OpenHost sign-in page; anonymous API requests
-  get a `401`. (The check is done in-app rather than via OpenHost's
-  `public_paths` list because OpenHost's path matcher treats `/`
+  redirected to the Cloud in a Bottle sign-in page; anonymous API requests
+  get a `401`. (The check is done in-app rather than via Cloud in a Bottle's
+  `public_paths` list because Cloud in a Bottle's path matcher treats `/`
   as a prefix that matches every URL, so a bare-`/` public entry
   would expose the editor too.)
 - The file API rejects path traversal, absolute paths, symlinks, and
   any extension other than `.gmi`. Bodies are capped at 1 MiB.
 - The container runs agate as the in-container root user; under the
-  OpenHost rootless-podman runtime this maps to an unprivileged host
+  Cloud in a Bottle rootless-podman runtime this maps to an unprivileged host
   uid, so it is not a privilege escalation. No extra Linux
   capabilities are requested.
