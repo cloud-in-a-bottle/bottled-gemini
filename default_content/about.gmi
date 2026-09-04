@@ -1,7 +1,6 @@
 # About this capsule
 
-This capsule is running the bottled-gemini app on a Cloud in a Bottle compute
-space. The code lives at:
+This capsule is served by the bottled-gemini app. The code lives at:
 
 => https://github.com/cloud-in-a-bottle/bottled-gemini
 

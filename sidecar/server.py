@@ -30,6 +30,8 @@ import os
 import re
 import socket
 import tempfile
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
 
@@ -43,6 +45,9 @@ from starlette.responses import Response
 from starlette.routing import Route
 from starlette.staticfiles import StaticFiles
 
+from feed import FeedSignature
+from feed import refresh_feed
+
 logger = logging.getLogger("openhost-gemini.sidecar")
 
 
@@ -52,6 +57,7 @@ logger = logging.getLogger("openhost-gemini.sidecar")
 AGATE_HOST = "127.0.0.1"
 AGATE_PORT = 1965
 PROBE_TIMEOUT_SECONDS = 1.0
+FEED_REFRESH_SECONDS = 5.0
 
 # Paths derived from the runtime environment. The defaults are used by
 # the unit/dev modes; under OpenHost both env vars are always set.
@@ -85,6 +91,10 @@ _VALID_HOSTNAME_RE = re.compile(
 # extension. This keeps the editor focused on its job and makes the
 # path-safety check simple.
 _VALID_RELPATH_RE = re.compile(r"^[A-Za-z0-9_.\-/]+$")
+
+_feed_signature: FeedSignature | None = None
+_feed_refresh_lock: asyncio.Lock | None = None
+_feed_error: str | None = None
 
 
 # ---------------------------------------------------------------- helpers
@@ -183,6 +193,54 @@ def _list_gmi_files() -> list[str]:
     return paths
 
 
+async def _refresh_feed() -> bool:
+    """Regenerate the RSS feed after editor or out-of-band content changes."""
+    global _feed_signature
+    global _feed_refresh_lock
+    global _feed_error
+    if _feed_refresh_lock is None:
+        _feed_refresh_lock = asyncio.Lock()
+    async with _feed_refresh_lock:
+        try:
+            _feed_signature = await asyncio.to_thread(
+                refresh_feed,
+                CONTENT_DIR,
+                _safe_hostname(),
+                _feed_signature,
+            )
+        except Exception as exc:
+            _feed_error = str(exc)
+            logger.exception("failed to refresh RSS feed")
+            return False
+        _feed_error = None
+        return True
+
+
+async def _feed_refresh_loop() -> None:
+    while True:
+        await asyncio.sleep(FEED_REFRESH_SECONDS)
+        await _refresh_feed()
+
+
+@asynccontextmanager
+async def lifespan(_: Starlette) -> AsyncIterator[None]:
+    global _feed_signature
+    global _feed_refresh_lock
+    _feed_signature = None
+    _feed_refresh_lock = asyncio.Lock()
+    await _refresh_feed()
+    refresh_task = asyncio.create_task(_feed_refresh_loop())
+    try:
+        yield
+    finally:
+        refresh_task.cancel()
+        try:
+            await refresh_task
+        except asyncio.CancelledError:
+            pass
+        _feed_refresh_lock = None
+
+
 # ---------------------------------------------------------------- handlers
 
 _LANDING_TEMPLATE = """<!doctype html>
@@ -190,7 +248,7 @@ _LANDING_TEMPLATE = """<!doctype html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="A text-first Gemini capsule hosted on Cloud in a Bottle.">
+  <meta name="description" content="A text-first Gemini capsule.">
   <title>Gemini capsule | {host}</title>
   <link rel="stylesheet" href="/static/landing.css">
 </head>
@@ -198,23 +256,12 @@ _LANDING_TEMPLATE = """<!doctype html>
   <header class="site-header">
     <div class="nav-inner">
       <a class="brand" href="/" aria-label="Gemini capsule home">
-        <svg class="brand-mark" viewBox="0 0 26 18" shape-rendering="crispEdges" aria-hidden="true">
-          <path fill="#0c0b0b" d="M3 0h14v1h1v1h1v1h1v1h3v1h3v8h-3v1h-3v1h-1v1h-1v1H3v-1H2v-1H1v-1H0V4h1V3h1V1h1z"/>
-          <path fill="#a0d9ff" d="M3 1h14v1h1v1h1v2h3v8h-3v1h-1v1H3v-1H2v-1H1V4h1V2h1z"/>
-          <path fill="#2a79f0" d="M3 3h13v1h1v1h1v8h-1v1H3v-1H2V4h1z"/>
-          <path fill="#fff" d="M8 6h5V5h3v1h2v1h2v3H5V8h2V7h1z"/>
-          <path fill="#0c0b0b" d="M22 4h3v1h1v8h-1v1h-3z"/>
-          <path fill="#f3f3f3" d="M23 6h2v6h-2z"/>
-        </svg>
-        <span class="brand-copy">
-          <strong>Gemini capsule</strong>
-          <small>on Cloud in a Bottle</small>
-        </span>
+        <span class="brand-pixel" aria-hidden="true"></span>
+        <strong>Gemini capsule</strong>
       </a>
       <nav class="nav-links" aria-label="Capsule navigation">
         <a href="#connect">Connect</a>
         <a href="#about">About Gemini</a>
-        <a href="https://cloudinabottle.org/" target="_blank" rel="noopener noreferrer">Cloud in a Bottle</a>
       </nav>
     </div>
   </header>
@@ -292,7 +339,15 @@ _LANDING_TEMPLATE = """<!doctype html>
         </a>
       </div>
 
-      <p class="certificate-note"><strong>First visit:</strong> your client will ask you to trust a self-signed certificate. Gemini commonly uses Trust On First Use, so this is expected.</p>
+      <div class="feed-callout">
+        <div class="feed-copy">
+          <span class="card-number">RSS</span>
+          <h3>Follow this gemlog in Newsboat.</h3>
+          <p>Dated pages in the posts directory are published automatically.</p>
+        </div>
+        <code>&quot;exec:gemget -o - gemini://{host}/feed.rss&quot;</code>
+      </div>
+
     </section>
 
     <section class="about-band grid-surface" id="about">
@@ -319,58 +374,35 @@ _LANDING_TEMPLATE = """<!doctype html>
         </div>
       </div>
     </section>
-    {owner_section}
   </main>
 
   <footer class="footer">
     <div class="footer-inner">
       <div>
         <strong>Gemini capsule</strong>
-        <p>Hosted independently on Cloud in a Bottle.</p>
+        <p>Small pages. Quiet protocol.</p>
       </div>
-      <a href="https://cloudinabottle.org/" target="_blank" rel="noopener noreferrer">cloudinabottle.org &rarr;</a>
+      <a href="gemini://{host}/">gemini://{host}/</a>
     </div>
   </footer>
 </body>
 </html>
 """
 
-# Extra section appended to the landing page only for an authenticated
-# owner. We render it conditionally so anonymous visitors never see
-# editor hints (and never even learn the editor exists), while the
-# compute-space owner gets a clear path into the editor without
-# having to memorise the /edit URL. The "Edit your capsule" call to
-# action is the natural counterpart to the public "this is what
-# Gemini is" cards above.
-_OWNER_SECTION = """
-    <section class="section owner-section">
-      <div class="owner-card">
-        <div>
-          <p class="eyebrow">// owner controls</p>
-          <h2>Shape the capsule.</h2>
-          <p>You are signed in. Edit the gemtext source and publish changes immediately.</p>
-        </div>
-        <a class="button button-primary" href="/edit">Open source editor</a>
-      </div>
-    </section>
-"""
-
-
 def _is_owner(request: Request) -> bool:
     """Return True when OpenHost forwarded the X-OpenHost-Is-Owner
-    header on the proxied request. Used by the public landing page to
-    inject an owner-only "Edit" affordance; the actual auth boundary
-    on /edit and /api/files/* is enforced by ``_owner_only``."""
+    header on the proxied request. Owners are sent straight to the editor;
+    the actual auth boundary is enforced separately by ``_owner_only``."""
     return request.headers.get("X-OpenHost-Is-Owner", "").lower() == "true"
 
 
-async def landing(request: Request) -> HTMLResponse:
-    owner = _is_owner(request)
-    owner_section = _OWNER_SECTION if owner else ""
+async def landing(request: Request) -> Response:
+    if _is_owner(request) and request.query_params.get("public") != "1":
+        return Response(status_code=302, headers={"Location": "/edit", "Cache-Control": "no-store"})
+
     agate_up = await _agate_up()
     body = _LANDING_TEMPLATE.format(
         host=html.escape(_safe_hostname(), quote=True),
-        owner_section=owner_section,
         status_class="is-online" if agate_up else "is-offline",
         status_text="Capsule online" if agate_up else "Capsule unavailable",
     )
@@ -378,9 +410,11 @@ async def landing(request: Request) -> HTMLResponse:
 
 
 async def healthz(request: Request) -> Response:
-    if await _agate_up():
-        return PlainTextResponse("ok\n")
-    return PlainTextResponse("agate-not-listening\n", status_code=503)
+    if not await _agate_up():
+        return PlainTextResponse("agate-not-listening\n", status_code=503)
+    if _feed_error is not None:
+        return PlainTextResponse("rss-feed-error\n", status_code=503)
+    return PlainTextResponse("ok\n")
 
 
 def _owner_only(request: Request) -> None:
@@ -551,7 +585,10 @@ async def put_file(request: Request) -> JSONResponse:
                 path, tmp_path, cleanup_exc,
             )
         raise HTTPException(500, f"failed to write: {exc}")
-    return JSONResponse({"path": rel, "bytes": len(content.encode("utf-8"))})
+    feed_ok = await _refresh_feed()
+    return JSONResponse(
+        {"path": rel, "bytes": len(content.encode("utf-8")), "feed_status": "ok" if feed_ok else "error"}
+    )
 
 
 async def post_file(request: Request) -> JSONResponse:
@@ -577,7 +614,11 @@ async def post_file(request: Request) -> JSONResponse:
         raise HTTPException(409, f"already exists: {rel}")
     except OSError as exc:
         raise HTTPException(500, f"failed to create: {exc}")
-    return JSONResponse({"path": rel, "bytes": len(content.encode("utf-8"))}, status_code=201)
+    feed_ok = await _refresh_feed()
+    return JSONResponse(
+        {"path": rel, "bytes": len(content.encode("utf-8")), "feed_status": "ok" if feed_ok else "error"},
+        status_code=201,
+    )
 
 
 async def delete_file(request: Request) -> Response:
@@ -592,7 +633,8 @@ async def delete_file(request: Request) -> Response:
         path.unlink()
     except OSError as exc:
         raise HTTPException(500, f"failed to delete: {exc}")
-    return Response(status_code=204)
+    feed_ok = await _refresh_feed()
+    return Response(status_code=204, headers={"X-RSS-Feed-Status": "ok" if feed_ok else "error"})
 
 
 # ----------------------------------------------------------------- error handler
@@ -630,6 +672,7 @@ app: Starlette = Starlette(
     debug=False,
     routes=routes,
     exception_handlers={HTTPException: http_exception_handler},
+    lifespan=lifespan,
 )
 
 # Mount static assets under /static (loaded by editor.html).

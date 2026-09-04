@@ -1,4 +1,4 @@
-/* Authenticated editor, aligned with the Cloud in a Bottle product UI. */
+/* Authenticated capsule editor. */
 
 @font-face {
   font-family: "Atkinson Hyperlegible Mono";
@@ -127,47 +127,13 @@ textarea:focus-visible,
   text-decoration: none;
 }
 
-.pixel-mark {
-  position: relative;
-  width: 28px;
-  height: 18px;
+.editor-pixel {
+  width: 9px;
+  height: 9px;
   flex: 0 0 auto;
-  border: 2px solid var(--text);
+  border: 1px solid var(--text);
   background: var(--accent);
-  box-shadow: inset -4px -4px 0 #2a79f0;
-}
-
-.pixel-mark::before {
-  position: absolute;
-  top: 5px;
-  left: 5px;
-  width: 13px;
-  height: 5px;
-  background: var(--surface-raised);
-  box-shadow: 3px -3px 0 var(--surface-raised), 7px 0 0 var(--surface-raised);
-  content: "";
-}
-
-.pixel-mark::after {
-  position: absolute;
-  top: 3px;
-  right: -6px;
-  width: 4px;
-  height: 8px;
-  border: 2px solid var(--text);
-  border-left: 0;
-  background: var(--surface-raised);
-  content: "";
-}
-
-.product-name {
-  display: block;
-  margin-bottom: 2px;
-  color: var(--text-subtle);
-  font-size: 10px;
-  line-height: 12px;
-  letter-spacing: 0.72px;
-  text-transform: uppercase;
+  box-shadow: 3px 3px 0 #2a79f0;
 }
 
 .topbar h1 {
@@ -555,14 +521,6 @@ textarea:focus-visible,
 }
 
 @media (max-width: 440px) {
-  .pixel-mark {
-    display: none;
-  }
-
-  .product-name {
-    display: none;
-  }
-
   .topbar h1 {
     font-size: 12px;
   }

@@ -48,7 +48,7 @@ async function apiFetch(url, opts = {}, parse = "json") {
         }
         throw new Error(`${r.status} ${r.statusText}: ${detail}`);
     }
-    if (parse === "none") return null;
+    if (parse === "none") return r;
     return await r.json();
 }
 
@@ -107,9 +107,9 @@ class Editor {
         }
     }
 
-    markSaved() {
+    markSaved(text = "Saved", klass = "ok") {
         this.dirty = false;
-        this.setStatus("Saved", "ok");
+        this.setStatus(text, klass);
     }
 
     load(path, src) {
@@ -185,8 +185,12 @@ async function init() {
         if (!currentFile) return;
         const body = editor.contents();
         try {
-            await saveFile(currentFile, body);
-            editor.markSaved();
+            const result = await saveFile(currentFile, body);
+            if (result.feed_status === "error") {
+                editor.markSaved("Saved; RSS update failed", "warn");
+            } else {
+                editor.markSaved();
+            }
         } catch (err) {
             editor.setStatus("Save failed: " + err.message, "err");
         }
@@ -197,9 +201,12 @@ async function init() {
         if (!name) return;
         const path = name.endsWith(".gmi") ? name : name + ".gmi";
         try {
-            await createFile(path);
+            const result = await createFile(path);
             await refreshFileList();
             await openFile(path);
+            if (result.feed_status === "error") {
+                editor.setStatus("Created; RSS update failed", "warn");
+            }
         } catch (err) {
             editor.setStatus("Create failed: " + err.message, "err");
         }
@@ -209,11 +216,14 @@ async function init() {
         if (!currentFile) return;
         if (!confirm(`Delete ${currentFile}? This is permanent.`)) return;
         try {
-            await deleteFile(currentFile);
+            const result = await deleteFile(currentFile);
             currentFile = null;
             filenameEl.textContent = "(no file)";
             editor.clear();
             await refreshFileList();
+            if (result.headers.get("X-RSS-Feed-Status") === "error") {
+                editor.setStatus("Deleted; RSS update failed", "warn");
+            }
         } catch (err) {
             editor.setStatus("Delete failed: " + err.message, "err");
         }

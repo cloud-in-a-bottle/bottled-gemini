@@ -15,13 +15,34 @@ The editor lives at the HTTP side of this app (not the Gemini side),
 behind the Cloud in a Bottle session, so only the compute-space owner
 can use it.
 
-## 2. Filestash
+## 2. Publish dated posts and RSS
+
+Put gemlog posts under the posts directory and begin each filename with
+its publication date:
+
+```
+posts/2026-09-04-my-first-post.gmi
+```
+
+Use a level-one heading for the post title and begin the body with a
+plain-text paragraph. The app publishes dated posts to /feed.rss and
+refreshes the feed automatically.
+
+For Newsboat, add a line like this to its urls file:
+
+```
+"exec:gemget -o - gemini://your-capsule.example/feed.rss"
+```
+
+=> /feed.rss Open the RSS feed
+
+## 3. Filestash
 
 Open the Filestash app and navigate to app_data/gemini/content. The
 .gmi files there are the pages you see here. Edit, save, and refresh
 your Gemini client.
 
-## 3. bottle app ssh (power user)
+## 4. bottle app ssh (power user)
 
 You can edit files directly from the shell using the Cloud in a Bottle CLI:
 

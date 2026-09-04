@@ -1,4 +1,4 @@
-/* Public capsule landing page, using the Cloud in a Bottle marketing vocabulary. */
+/* Public capsule landing page. */
 
 @font-face {
   font-family: "Martian Mono";
@@ -136,28 +136,19 @@ a:hover {
   line-height: 1;
 }
 
-.brand-mark {
-  width: 39px;
-  height: 27px;
+.brand-pixel {
+  width: 10px;
+  height: 10px;
   flex: 0 0 auto;
-  image-rendering: pixelated;
+  border: 1px solid var(--black);
+  background: var(--sky);
+  box-shadow: 3px 3px 0 var(--blue);
 }
 
-.brand-copy {
-  display: grid;
-  gap: 3px;
+.brand strong {
+  font-size: 0.74rem;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-}
-
-.brand-copy strong {
-  font-size: 0.78rem;
-  letter-spacing: 0.04em;
-}
-
-.brand-copy small {
-  color: var(--ink-soft);
-  font-size: 0.54rem;
-  letter-spacing: 0.08em;
 }
 
 .nav-links {
@@ -431,8 +422,7 @@ h1 {
 }
 
 .section h2,
-.about-copy h2,
-.owner-card h2 {
+.about-copy h2 {
   font-size: clamp(1.8rem, 3.4vw, 2.7rem);
   line-height: 1.08;
 }
@@ -518,18 +508,44 @@ h1 {
   font-weight: 600;
 }
 
-.certificate-note {
-  max-width: 54em;
+.feed-callout {
   margin-top: 32px;
-  padding: 15px 18px;
-  border-left: 5px solid var(--blue);
+  display: grid;
+  grid-template-columns: minmax(240px, 0.8fr) minmax(0, 1.2fr);
+  align-items: stretch;
+  border: var(--border);
   background: var(--paper);
-  color: var(--ink-soft);
-  font-size: 0.92rem;
+  box-shadow: 4px 4px 0 var(--black);
 }
 
-.certificate-note strong {
-  color: var(--black);
+.feed-copy {
+  padding: 19px 20px;
+  border-right: var(--border);
+}
+
+.feed-copy h3 {
+  margin-top: 8px;
+  font-size: 0.92rem;
+  letter-spacing: -0.01em;
+}
+
+.feed-copy p {
+  margin-top: 5px;
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.feed-callout code {
+  min-width: 0;
+  padding: 22px;
+  display: flex;
+  align-items: center;
+  overflow-x: auto;
+  background: var(--black);
+  color: var(--grass);
+  font-size: 0.7rem;
+  white-space: nowrap;
 }
 
 .about-band {
@@ -595,34 +611,6 @@ h1 {
   color: var(--ink-soft);
   font-size: 0.92rem;
   line-height: 1.45;
-}
-
-.owner-section {
-  padding-block: 72px 94px;
-}
-
-.owner-card {
-  padding: 34px 32px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 36px;
-  border: var(--border);
-  background: var(--sky-pale);
-  box-shadow: var(--raised-shadow);
-}
-
-.owner-card .eyebrow {
-  margin-bottom: 12px;
-}
-
-.owner-card p:not(.eyebrow) {
-  margin-top: 12px;
-  color: var(--ink-soft);
-}
-
-.owner-card .button {
-  flex: 0 0 auto;
 }
 
 .footer {
@@ -723,10 +711,6 @@ h1 {
     padding-block: 10px;
   }
 
-  .brand-copy small {
-    display: none;
-  }
-
   .nav-links {
     width: 100%;
     justify-content: space-between;
@@ -805,14 +789,17 @@ h1 {
     grid-column: auto;
   }
 
-  .about-inner {
+  .feed-callout {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .owner-card {
-    align-items: flex-start;
-    flex-direction: column;
-    padding: 28px 22px;
+  .feed-copy {
+    border-right: 0;
+    border-bottom: var(--border);
+  }
+
+  .about-inner {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .footer-inner {
