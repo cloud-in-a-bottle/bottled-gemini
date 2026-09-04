@@ -248,130 +248,50 @@ _LANDING_TEMPLATE = """<!doctype html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="A text-first Gemini capsule.">
+  <meta name="description" content="Gemini capsule links and connection details.">
   <title>Gemini capsule | {host}</title>
   <link rel="stylesheet" href="/static/landing.css">
 </head>
 <body>
-  <header class="site-header">
-    <div class="nav-inner">
-      <a class="brand" href="/" aria-label="Gemini capsule home">
+  <main class="paper">
+    <header class="paper-header">
+      <div class="brand">
         <span class="brand-pixel" aria-hidden="true"></span>
-        <strong>Gemini capsule</strong>
-      </a>
-      <nav class="nav-links" aria-label="Capsule navigation">
-        <a href="#connect">Connect</a>
-        <a href="#about">About Gemini</a>
-      </nav>
-    </div>
-  </header>
-
-  <main>
-    <section class="hero grid-surface">
-      <div class="hero-inner">
-        <div class="hero-copy">
-          <p class="eyebrow">// small-web publishing</p>
-          <h1>A quieter place<br>to publish.</h1>
-          <p class="lede">This is a Gemini capsule: a collection of text-first pages served outside the web, at an address of its own.</p>
-          <div class="hero-actions">
-            <a class="button button-primary" href="gemini://{host}/">Open the capsule</a>
-            <a class="button" href="#connect">Get a Gemini client</a>
-          </div>
-          <p class="hero-note">NO SCRIPTS&nbsp;&nbsp;/&nbsp;&nbsp;NO TRACKING&nbsp;&nbsp;/&nbsp;&nbsp;JUST DOCUMENTS</p>
-        </div>
-
-        <div class="endpoint-card" aria-label="Capsule connection details">
-          <div class="endpoint-topline">
-            <span class="live-dot {status_class}" aria-hidden="true"></span>
-            <span>{status_text}</span>
-          </div>
-          <code class="endpoint-url">gemini://{host}/</code>
-          <dl class="endpoint-facts">
-            <div><dt>Protocol</dt><dd>Gemini</dd></div>
-            <div><dt>Port</dt><dd>1965 / TLS</dd></div>
-            <div><dt>Format</dt><dd>text/gemini</dd></div>
-          </dl>
-        </div>
+        <h1>Gemini capsule</h1>
       </div>
-    </section>
+      <a href="https://geminiprotocol.net/docs/protocol-specification.gmi" target="_blank" rel="noopener noreferrer">Protocol specification</a>
+    </header>
 
-    <section class="section connect" id="connect">
-      <p class="eyebrow">// connect</p>
-      <div class="section-heading">
+    <section class="addresses" aria-labelledby="addresses-title">
+      <h2 id="addresses-title">Addresses</h2>
+      <dl>
         <div>
-          <h2>Open this capsule in a Gemini client.</h2>
-          <p>Gemini uses its own URL scheme, so a normal web browser cannot display the capsule itself.</p>
+          <dt>Gemini</dt>
+          <dd><a href="gemini://{host}/"><code>gemini://{host}/</code></a></dd>
         </div>
-        <code class="address">gemini://{host}/</code>
-      </div>
-
-      <div class="client-grid">
-        <a class="client-card" href="https://lagrange.skyjake.fi/" target="_blank" rel="noopener noreferrer">
-          <span class="card-number">01</span>
-          <h3>Lagrange</h3>
-          <p>A graphical client for desktop and mobile.</p>
-          <span class="card-link">Visit Lagrange &rarr;</span>
-        </a>
-        <a class="client-card" href="https://github.com/makew0rld/amfora" target="_blank" rel="noopener noreferrer">
-          <span class="card-number">02</span>
-          <h3>Amfora</h3>
-          <p>A keyboard-friendly Gemini client for the terminal.</p>
-          <span class="card-link">View on GitHub &rarr;</span>
-        </a>
-        <a class="client-card client-card-accent" href="https://geminiprotocol.net/software/" target="_blank" rel="noopener noreferrer">
-          <span class="card-number">03</span>
-          <h3>More clients</h3>
-          <p>Browse clients for every major platform.</p>
-          <span class="card-link">See the directory &rarr;</span>
-        </a>
-      </div>
-
-      <div class="feed-callout">
-        <div class="feed-copy">
-          <span class="card-number">RSS</span>
-          <h3>Follow this gemlog in Newsboat.</h3>
-          <p>Dated pages in the posts directory are published automatically.</p>
+        <div>
+          <dt>RSS</dt>
+          <dd><a href="gemini://{host}/feed.rss"><code>gemini://{host}/feed.rss</code></a></dd>
         </div>
+      </dl>
+    </section>
+
+    <div class="resources">
+      <section class="clients" aria-labelledby="clients-title">
+        <h2 id="clients-title">Clients</h2>
+        <ul>
+          <li><a href="https://lagrange.skyjake.fi/" target="_blank" rel="noopener noreferrer">Lagrange</a><span>Desktop and mobile</span></li>
+          <li><a href="https://github.com/makew0rld/amfora" target="_blank" rel="noopener noreferrer">Amfora</a><span>Terminal</span></li>
+          <li><a href="https://geminiprotocol.net/software/" target="_blank" rel="noopener noreferrer">Client directory</a><span>More options</span></li>
+        </ul>
+      </section>
+
+      <section class="rss" aria-labelledby="rss-title">
+        <h2 id="rss-title">Newsboat</h2>
         <code>&quot;exec:gemget -o - gemini://{host}/feed.rss&quot;</code>
-      </div>
-
-    </section>
-
-    <section class="about-band grid-surface" id="about">
-      <div class="about-inner">
-        <div class="about-copy">
-          <p class="eyebrow">// why Gemini</p>
-          <h2>The web, pared back to reading and writing.</h2>
-          <p>Gemini is a small internet protocol for serving documents. Its intentionally narrow scope keeps pages fast, legible, and quiet.</p>
-          <a class="text-link" href="https://geminiprotocol.net/" target="_blank" rel="noopener noreferrer">Read about the protocol &rarr;</a>
-        </div>
-        <div class="fact-list">
-          <article>
-            <span>01</span>
-            <div><h3>Text first</h3><p>Gemtext has only six line shapes and no embedded scripts.</p></div>
-          </article>
-          <article>
-            <span>02</span>
-            <div><h3>Private by default</h3><p>No cookies, trackers, pop-ups, or behavioral advertising.</p></div>
-          </article>
-          <article>
-            <span>03</span>
-            <div><h3>Built to last</h3><p>Small pages and a simple protocol make archives easy to keep.</p></div>
-          </article>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <footer class="footer">
-    <div class="footer-inner">
-      <div>
-        <strong>Gemini capsule</strong>
-        <p>Small pages. Quiet protocol.</p>
-      </div>
-      <a href="gemini://{host}/">gemini://{host}/</a>
+      </section>
     </div>
-  </footer>
+  </main>
 </body>
 </html>
 """
@@ -387,11 +307,8 @@ async def landing(request: Request) -> Response:
     if _is_owner(request) and request.query_params.get("public") != "1":
         return Response(status_code=302, headers={"Location": "/edit", "Cache-Control": "no-store"})
 
-    agate_up = await _agate_up()
     body = _LANDING_TEMPLATE.format(
         host=html.escape(_safe_hostname(), quote=True),
-        status_class="is-online" if agate_up else "is-offline",
-        status_text="Capsule online" if agate_up else "Capsule unavailable",
     )
     return HTMLResponse(body, headers={"Cache-Control": "no-store"})
 
