@@ -114,8 +114,10 @@ disk); your edits survive container rebuilds.
 - `sidecar/server.py` — Starlette app: landing page, health check,
   editor, file API.
 - `sidecar/templates/editor.html` — editor shell.
-- `sidecar/static/editor.js`, `editor.css` — editor JS (gemtext
-  parser, serializer, contenteditable host) and styling.
+- `sidecar/static/landing.css` — public capsule landing-page styling.
+- `sidecar/static/editor.js`, `editor.css` — source-editor behavior
+  and styling.
+- `sidecar/static/fonts/` — self-hosted brand fonts and their license.
 - `default_content/` — baseline gemtext pages seeded into the
   persistent volume on first boot.
 

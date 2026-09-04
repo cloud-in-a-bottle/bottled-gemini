@@ -15,7 +15,7 @@
 #      found; subsequent boots reuse the existing cert/key.
 #   4. Launch the HTTP sidecar (Starlette + Uvicorn) on
 #      :${STATUS_PORT:-8080} for the OpenHost router's health-check,
-#      landing page, and WYSIWYG editor.
+#      landing page, and gemtext source editor.
 #   5. Launch agate in the foreground as an unprivileged user.
 #   6. Supervise both children: if either exits, kill the other and
 #      exit so OpenHost restarts the container.

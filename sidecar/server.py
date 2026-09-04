@@ -4,11 +4,9 @@
 Three jobs:
 
 1. Health check at ``/healthz`` (probes agate on 127.0.0.1:1965).
-2. Landing page at ``/`` describing how to point a Gemini client at the
-   capsule. Behind the OpenHost session gate by default (no
-   ``public_paths`` declared in the manifest), so only the
-   compute-space owner sees it.
-3. WYSIWYG editor for the capsule's ``.gmi`` files at ``/edit``, with
+2. Public landing page at ``/`` describing how to point a Gemini client at
+   the capsule.
+3. Source editor for the capsule's ``.gmi`` files at ``/edit``, with
    a small JSON file API at ``/api/files`` and ``/api/files/<path>``.
    Edits land in ``$OPENHOST_APP_DATA_DIR/content/`` directly; agate
    re-reads files on the next request, so changes are live without a
@@ -67,7 +65,7 @@ STATIC_DIR = SIDECAR_ROOT / "static"
 
 # Cap saved files to a generous-but-bounded size. Gemtext is hand-edited
 # prose; nobody legitimately writes a 10-MB capsule page through the
-# WYSIWYG editor. The bound prevents a confused or hostile editor JS
+# source editor. The bound prevents a confused or hostile editor JS
 # call from filling the persistent volume.
 MAX_FILE_BYTES = 1 * 1024 * 1024  # 1 MiB
 
@@ -192,62 +190,147 @@ _LANDING_TEMPLATE = """<!doctype html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Gemini Capsule</title>
-  <style>
-    body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
-            Roboto, sans-serif; background:#0f1117; color:#e1e4e8;
-            padding:40px; max-width:720px; margin:0 auto; line-height:1.4; }}
-    h1 {{ color:#fff; }}
-    h2 {{ color:#fff; margin-top:1.5em; }}
-    code {{ background:#0d1117; border:1px solid #30363d; padding:2px 6px;
-            border-radius:4px; }}
-    .card {{ background:#161b22; border:1px solid #30363d; border-radius:8px;
-             padding:16px 20px; margin:16px 0; }}
-    ul {{ padding-left: 1.4em; }}
-    li {{ margin: 0.3em 0; }}
-    a {{ color:#58a6ff; }}
-  </style>
+  <meta name="description" content="A text-first Gemini capsule hosted on Cloud in a Bottle.">
+  <title>Gemini capsule | {host}</title>
+  <link rel="stylesheet" href="/static/landing.css">
 </head>
 <body>
-  <h1>Gemini Capsule</h1>
+  <header class="site-header">
+    <div class="nav-inner">
+      <a class="brand" href="/" aria-label="Gemini capsule home">
+        <svg class="brand-mark" viewBox="0 0 26 18" shape-rendering="crispEdges" aria-hidden="true">
+          <path fill="#0c0b0b" d="M3 0h14v1h1v1h1v1h1v1h3v1h3v8h-3v1h-3v1h-1v1h-1v1H3v-1H2v-1H1v-1H0V4h1V3h1V1h1z"/>
+          <path fill="#a0d9ff" d="M3 1h14v1h1v1h1v2h3v8h-3v1h-1v1H3v-1H2v-1H1V4h1V2h1z"/>
+          <path fill="#2a79f0" d="M3 3h13v1h1v1h1v8h-1v1H3v-1H2V4h1z"/>
+          <path fill="#fff" d="M8 6h5V5h3v1h2v1h2v3H5V8h2V7h1z"/>
+          <path fill="#0c0b0b" d="M22 4h3v1h1v8h-1v1h-3z"/>
+          <path fill="#f3f3f3" d="M23 6h2v6h-2z"/>
+        </svg>
+        <span class="brand-copy">
+          <strong>Gemini capsule</strong>
+          <small>on Cloud in a Bottle</small>
+        </span>
+      </a>
+      <nav class="nav-links" aria-label="Capsule navigation">
+        <a href="#connect">Connect</a>
+        <a href="#about">About Gemini</a>
+        <a href="https://cloudinabottle.org/" target="_blank" rel="noopener noreferrer">Cloud in a Bottle</a>
+      </nav>
+    </div>
+  </header>
 
-  <div class="card">
-    <p>You've reached the HTTPS side of a Gemini capsule. Gemini is a
-       lightweight internet protocol that runs alongside HTTP, with
-       its own URL scheme, content type (gemtext), and clients. To
-       browse this capsule, point a Gemini client at:</p>
-    <p><code>gemini://{host}/</code></p>
-  </div>
+  <main>
+    <section class="hero grid-surface">
+      <div class="sky-clouds" aria-hidden="true">
+        <svg class="cloud cloud-1" viewBox="0 0 18 9" shape-rendering="crispEdges">
+          <path d="M5 2h6v1h1v1h2v1h2v2h-1v1H2V7H1V5h1V4h2V3h1z"/>
+        </svg>
+        <svg class="cloud cloud-2" viewBox="0 0 18 9" shape-rendering="crispEdges">
+          <path d="M5 2h6v1h1v1h2v1h2v2h-1v1H2V7H1V5h1V4h2V3h1z"/>
+        </svg>
+        <svg class="cloud cloud-3" viewBox="0 0 18 9" shape-rendering="crispEdges">
+          <path d="M5 2h6v1h1v1h2v1h2v2h-1v1H2V7H1V5h1V4h2V3h1z"/>
+        </svg>
+      </div>
 
-  <div class="card">
-    <h2>Getting a Gemini client</h2>
-    <p>Gemini clients are small and free. A few popular ones:</p>
-    <ul>
-      <li><a href="https://lagrange.skyjake.fi/">Lagrange</a> -- desktop and mobile (macOS, Linux, Windows, iOS, Android).</li>
-      <li><a href="https://github.com/makew0rld/amfora">Amfora</a> -- terminal-based, cross-platform.</li>
-      <li><a href="https://geminiprotocol.net/clients.gmi">Full client list</a> on the Gemini protocol site.</li>
-    </ul>
-    <p>Most clients let you paste the <code>gemini://</code> URL above
-       directly into their address bar.</p>
-  </div>
+      <div class="hero-inner">
+        <div class="hero-copy">
+          <p class="eyebrow">// small-web publishing</p>
+          <h1>A quieter place<br>to publish.</h1>
+          <p class="lede">This is a Gemini capsule: a collection of text-first pages served outside the web, at an address of its own.</p>
+          <div class="hero-actions">
+            <a class="button button-primary" href="gemini://{host}/">Open the capsule</a>
+            <a class="button" href="#connect">Get a Gemini client</a>
+          </div>
+          <p class="hero-note">NO SCRIPTS&nbsp;&nbsp;/&nbsp;&nbsp;NO TRACKING&nbsp;&nbsp;/&nbsp;&nbsp;JUST DOCUMENTS</p>
+        </div>
 
-  <div class="card">
-    <h2>About the certificate</h2>
-    <p>Gemini servers use TLS, but the certificates are typically
-       self-signed and trusted by clients on first connect (TOFU --
-       Trust On First Use), not signed by a public CA. When you visit
-       this capsule, your Gemini client will ask you to confirm the
-       certificate the first time. That is normal.</p>
-  </div>
+        <div class="endpoint-card" aria-label="Capsule connection details">
+          <div class="endpoint-topline">
+            <span class="live-dot" aria-hidden="true"></span>
+            <span>Capsule online</span>
+          </div>
+          <code class="endpoint-url">gemini://{host}/</code>
+          <dl class="endpoint-facts">
+            <div><dt>Protocol</dt><dd>Gemini</dd></div>
+            <div><dt>Port</dt><dd>1965 / TLS</dd></div>
+            <div><dt>Format</dt><dd>text/gemini</dd></div>
+          </dl>
+        </div>
+      </div>
+      <div class="horizon" aria-hidden="true"></div>
+    </section>
 
-  <div class="card">
-    <h2>What is Gemini?</h2>
-    <p>Gemini is an alternative to the modern web. It serves text-first
-       documents over a simple line-oriented protocol. There is no
-       JavaScript, no tracking, no ads, and the markup language
-       (gemtext) has six line shapes total. Read more at the
-       <a href="https://geminiprotocol.net/">Gemini protocol site</a>.</p>
-  </div>{owner_section}
+    <section class="section connect" id="connect">
+      <p class="eyebrow">// connect</p>
+      <div class="section-heading">
+        <div>
+          <h2>Open this capsule in a Gemini client.</h2>
+          <p>Gemini uses its own URL scheme, so a normal web browser cannot display the capsule itself.</p>
+        </div>
+        <code class="address">gemini://{host}/</code>
+      </div>
+
+      <div class="client-grid">
+        <a class="client-card" href="https://lagrange.skyjake.fi/" target="_blank" rel="noopener noreferrer">
+          <span class="card-number">01</span>
+          <h3>Lagrange</h3>
+          <p>A graphical client for desktop and mobile.</p>
+          <span class="card-link">Visit Lagrange &rarr;</span>
+        </a>
+        <a class="client-card" href="https://github.com/makew0rld/amfora" target="_blank" rel="noopener noreferrer">
+          <span class="card-number">02</span>
+          <h3>Amfora</h3>
+          <p>A keyboard-friendly Gemini client for the terminal.</p>
+          <span class="card-link">View on GitHub &rarr;</span>
+        </a>
+        <a class="client-card client-card-accent" href="https://geminiprotocol.net/software/" target="_blank" rel="noopener noreferrer">
+          <span class="card-number">03</span>
+          <h3>More clients</h3>
+          <p>Browse clients for every major platform.</p>
+          <span class="card-link">See the directory &rarr;</span>
+        </a>
+      </div>
+
+      <p class="certificate-note"><strong>First visit:</strong> your client will ask you to trust a self-signed certificate. Gemini commonly uses Trust On First Use, so this is expected.</p>
+    </section>
+
+    <section class="about-band grid-surface" id="about">
+      <div class="about-inner">
+        <div class="about-copy">
+          <p class="eyebrow">// why Gemini</p>
+          <h2>The web, pared back to reading and writing.</h2>
+          <p>Gemini is a small internet protocol for serving documents. Its intentionally narrow scope keeps pages fast, legible, and quiet.</p>
+          <a class="text-link" href="https://geminiprotocol.net/" target="_blank" rel="noopener noreferrer">Read about the protocol &rarr;</a>
+        </div>
+        <div class="fact-list">
+          <article>
+            <span>01</span>
+            <div><h3>Text first</h3><p>Gemtext has only six line shapes and no embedded scripts.</p></div>
+          </article>
+          <article>
+            <span>02</span>
+            <div><h3>Private by default</h3><p>No cookies, trackers, pop-ups, or behavioral advertising.</p></div>
+          </article>
+          <article>
+            <span>03</span>
+            <div><h3>Built to last</h3><p>Small pages and a simple protocol make archives easy to keep.</p></div>
+          </article>
+        </div>
+      </div>
+    </section>
+    {owner_section}
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div>
+        <strong>Gemini capsule</strong>
+        <p>Hosted independently on Cloud in a Bottle.</p>
+      </div>
+      <a href="https://cloudinabottle.org/" target="_blank" rel="noopener noreferrer">cloudinabottle.org &rarr;</a>
+    </div>
+  </footer>
 </body>
 </html>
 """
@@ -260,26 +343,16 @@ _LANDING_TEMPLATE = """<!doctype html>
 # action is the natural counterpart to the public "this is what
 # Gemini is" cards above.
 _OWNER_SECTION = """
-
-  <div class="card owner-card">
-    <h2>You're signed in as the owner</h2>
-    <p>Edit your capsule's pages with the built-in WYSIWYG editor:</p>
-    <p><a class="cta" href="/edit">Open editor</a></p>
-    <p style="color:#8b949e; font-size:0.9em;">Only you see this card. Anonymous visitors get the public landing page above without any editor links.</p>
-  </div>
-"""
-
-# CSS for the owner card / button. We append this to the existing
-# style block when rendering for an owner so the public template
-# stays byte-identical to anonymous visitors.
-_OWNER_STYLE = """
-    .owner-card { border-color: #1f6feb; }
-    .cta {
-      display: inline-block; background:#1f6feb; color:#fff;
-      text-decoration: none; padding: 8px 16px; border-radius: 6px;
-      font-weight: 600;
-    }
-    .cta:hover { background:#388bfd; }
+    <section class="section owner-section">
+      <div class="owner-card">
+        <div>
+          <p class="eyebrow">// owner controls</p>
+          <h2>Shape the capsule.</h2>
+          <p>You are signed in. Edit the gemtext source and publish changes immediately.</p>
+        </div>
+        <a class="button button-primary" href="/edit">Open source editor</a>
+      </div>
+    </section>
 """
 
 
@@ -298,11 +371,6 @@ async def landing(request: Request) -> HTMLResponse:
         host=html.escape(_safe_hostname(), quote=True),
         owner_section=owner_section,
     )
-    if owner:
-        # Append the owner-card styles. Inserting just before the
-        # closing </style> keeps the existing rules intact and avoids
-        # a separate <style> block.
-        body = body.replace("</style>", _OWNER_STYLE + "  </style>", 1)
     return HTMLResponse(body, headers={"Cache-Control": "no-store"})
 
 

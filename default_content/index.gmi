@@ -1,8 +1,8 @@
 # Welcome to your Gemini capsule
 
-This is a freshly-deployed Gemini capsule, running on the openhost-gemini
-app (backed by agate). It is serving the default index file bundled
-with the image.
+This is a freshly-deployed Gemini capsule, running on the bottled-gemini
+app in Cloud in a Bottle (backed by agate). It is serving the default
+index file bundled with the image.
 
 => /about.gmi About this capsule
 => /editing.gmi How to edit these pages
@@ -20,4 +20,3 @@ page is plain text with a tiny bit of markup (gemtext):
 * Everything else is a paragraph.
 
 That's the whole language.
-

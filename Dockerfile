@@ -10,7 +10,7 @@
 # Base image: Debian 12 slim. We need a modern glibc (agate is linked
 # against glibc 2.35+), curl+ca-certs for downloading the agate
 # release, python3 + Starlette/Uvicorn for the HTTP sidecar (landing,
-# health-check, and WYSIWYG editor), and tini so SIGTERM from
+# health-check, and gemtext source editor), and tini so SIGTERM from
 # `docker stop` reaches both children via our start.sh supervisor.
 FROM debian:bookworm-slim
 
