@@ -34,6 +34,8 @@ class LandingTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn("protocol-specification.gmi", body)
         self.assertIn("/feed.rss", body)
         self.assertIn("Lagrange", body)
+        self.assertNotIn("Newsboat", body)
+        self.assertNotIn("exec:gemget", body)
         self.assertNotIn("A quieter place", body)
         self.assertNotIn("About the certificate", body)
         self.assertNotIn("\u2014", body)

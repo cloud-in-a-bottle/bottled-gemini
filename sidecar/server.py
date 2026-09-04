@@ -276,21 +276,14 @@ _LANDING_TEMPLATE = """<!doctype html>
       </dl>
     </section>
 
-    <div class="resources">
-      <section class="clients" aria-labelledby="clients-title">
-        <h2 id="clients-title">Clients</h2>
-        <ul>
-          <li><a href="https://lagrange.skyjake.fi/" target="_blank" rel="noopener noreferrer">Lagrange</a><span>Desktop and mobile</span></li>
-          <li><a href="https://github.com/makew0rld/amfora" target="_blank" rel="noopener noreferrer">Amfora</a><span>Terminal</span></li>
-          <li><a href="https://geminiprotocol.net/software/" target="_blank" rel="noopener noreferrer">Client directory</a><span>More options</span></li>
-        </ul>
-      </section>
-
-      <section class="rss" aria-labelledby="rss-title">
-        <h2 id="rss-title">Newsboat</h2>
-        <code>&quot;exec:gemget -o - gemini://{host}/feed.rss&quot;</code>
-      </section>
-    </div>
+    <section class="clients" aria-labelledby="clients-title">
+      <h2 id="clients-title">Clients</h2>
+      <ul>
+        <li><a href="https://lagrange.skyjake.fi/" target="_blank" rel="noopener noreferrer">Lagrange</a><span>Desktop and mobile</span></li>
+        <li><a href="https://github.com/makew0rld/amfora" target="_blank" rel="noopener noreferrer">Amfora</a><span>Terminal</span></li>
+        <li><a href="https://geminiprotocol.net/software/" target="_blank" rel="noopener noreferrer">Client directory</a><span>More options</span></li>
+      </ul>
+    </section>
   </main>
 </body>
 </html>

@@ -125,8 +125,7 @@ h1 {
 }
 
 .addresses,
-.clients,
-.rss {
+.clients {
   padding: 28px;
 }
 
@@ -181,14 +180,8 @@ code {
   white-space: nowrap;
 }
 
-.resources {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  border-top: var(--border);
-}
-
 .clients {
-  border-right: var(--border);
+  border-top: var(--border);
 }
 
 .clients ul {
@@ -220,16 +213,6 @@ code {
   text-align: right;
 }
 
-.rss code {
-  padding: 16px;
-  display: block;
-  border: var(--border);
-  background: var(--ink);
-  color: #d4ffbc;
-  overflow-wrap: anywhere;
-  white-space: normal;
-}
-
 @media (max-width: 640px) {
   body {
     padding: 16px;
@@ -246,8 +229,7 @@ code {
   }
 
   .addresses,
-  .clients,
-  .rss {
+  .clients {
     padding: 20px;
   }
 
@@ -263,15 +245,6 @@ code {
 
   dd {
     padding: 12px;
-  }
-
-  .resources {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .clients {
-    border-right: 0;
-    border-bottom: var(--border);
   }
 
   .clients li {
