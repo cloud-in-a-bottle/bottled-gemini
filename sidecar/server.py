@@ -7,7 +7,7 @@ Three jobs:
 2. Public landing page at ``/`` describing how to point a Gemini client at
    the capsule.
 3. Source editor for the capsule's ``.gmi`` files at ``/edit``, with
-   a small JSON file API at ``/api/files`` and ``/api/files/<path>``.
+   a file API for reading, writing, uploading, and downloading pages.
    Edits land in ``$OPENHOST_APP_DATA_DIR/content/`` directly; agate
    re-reads files on the next request, so changes are live without a
    restart.
@@ -23,13 +23,17 @@ Outside the container, install ``sidecar/requirements.txt`` first.
 from __future__ import annotations
 
 import asyncio
+import errno
 import html
+import io
 import json
 import logging
 import os
 import re
 import socket
+import stat
 import tempfile
+import zipfile
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -74,6 +78,9 @@ STATIC_DIR = SIDECAR_ROOT / "static"
 # source editor. The bound prevents a confused or hostile editor JS
 # call from filling the persistent volume.
 MAX_FILE_BYTES = 1 * 1024 * 1024  # 1 MiB
+MAX_JSON_BODY_BYTES = MAX_FILE_BYTES * 6 + 4096
+MAX_DOWNLOAD_FILES = 500
+MAX_DOWNLOAD_BYTES = 8 * 1024 * 1024
 
 # Gemini hostname (resolved by start.sh; falls back if missing).
 GEMINI_HOSTNAME = os.environ.get("GEMINI_RESOLVED_HOSTNAME", "").strip() or "your-openhost-zone"
@@ -139,14 +146,21 @@ def _resolve_content_path(rel: str) -> Path:
     if not rel.endswith(".gmi"):
         raise HTTPException(400, "only .gmi files are editable")
 
-    candidate = (CONTENT_DIR / rel).resolve()
+    candidate = CONTENT_DIR / rel
+    resolved = candidate.resolve()
     # ``resolve(strict=False)`` follows symlinks. We re-check the
     # parents so a content-dir-relative symlink can't be used to
     # write outside the content dir on a future create-file call.
     try:
-        candidate.relative_to(CONTENT_DIR)
+        resolved.relative_to(CONTENT_DIR)
     except ValueError:
         raise HTTPException(400, "path escapes the content directory")
+
+    current = candidate
+    while current != CONTENT_DIR:
+        if current.is_symlink():
+            raise HTTPException(400, "symlinks are not allowed")
+        current = current.parent
     return candidate
 
 
@@ -397,8 +411,7 @@ async def get_file(request: Request) -> JSONResponse:
 
 async def _read_json_body(request: Request) -> dict[str, Any]:
     raw = await request.body()
-    if len(raw) > MAX_FILE_BYTES + 1024:
-        # 1 KiB headroom for the JSON envelope.
+    if len(raw) > MAX_JSON_BODY_BYTES:
         raise HTTPException(413, "request body too large")
     try:
         data = json.loads(raw.decode("utf-8"))
@@ -534,6 +547,97 @@ async def delete_file(request: Request) -> Response:
     return Response(status_code=204, headers={"X-RSS-Feed-Status": "ok" if feed_ok else "error"})
 
 
+def _read_download_file(rel: str, max_bytes: int) -> bytes:
+    path = _resolve_content_path(rel)
+    flags = (
+        os.O_RDONLY
+        | getattr(os, "O_CLOEXEC", 0)
+        | getattr(os, "O_NOFOLLOW", 0)
+        | getattr(os, "O_NONBLOCK", 0)
+    )
+    try:
+        fd = os.open(path, flags)
+    except FileNotFoundError:
+        raise HTTPException(404, f"no such file: {rel}")
+    except OSError as exc:
+        if exc.errno == errno.ELOOP:
+            raise HTTPException(400, f"symlinks are not allowed: {rel}")
+        raise HTTPException(500, f"failed to open {rel}: {exc}")
+
+    try:
+        try:
+            Path(f"/proc/self/fd/{fd}").resolve(strict=True).relative_to(CONTENT_DIR)
+        except (OSError, ValueError):
+            raise HTTPException(400, f"path escapes the content directory: {rel}")
+        file_stat = os.fstat(fd)
+        if not stat.S_ISREG(file_stat.st_mode):
+            raise HTTPException(400, f"not a regular file: {rel}")
+        if file_stat.st_size > max_bytes:
+            raise HTTPException(413, f"selected files exceed {MAX_DOWNLOAD_BYTES} bytes")
+        with os.fdopen(fd, "rb") as stream:
+            fd = -1
+            body = stream.read(max_bytes + 1)
+        if len(body) > max_bytes:
+            raise HTTPException(413, f"selected files exceed {MAX_DOWNLOAD_BYTES} bytes")
+        return body
+    finally:
+        if fd >= 0:
+            os.close(fd)
+
+
+async def download_file(request: Request) -> Response:
+    """Return one gemtext file without text decoding or newline conversion."""
+    _owner_only(request)
+    rel = request.path_params["rel"]
+    body = await asyncio.to_thread(_read_download_file, rel, MAX_DOWNLOAD_BYTES)
+    return Response(
+        body,
+        media_type="text/gemini",
+        headers={
+            "Content-Disposition": f'attachment; filename="{Path(rel).name}"',
+            "Cache-Control": "no-store",
+        },
+    )
+
+
+def _build_download_archive(requested: list[str]) -> bytes:
+    files: list[tuple[str, bytes]] = []
+    total_bytes = 0
+    for rel in dict.fromkeys(requested):
+        body = _read_download_file(rel, MAX_DOWNLOAD_BYTES - total_bytes)
+        total_bytes += len(body)
+        files.append((rel, body))
+
+    archive_buffer = io.BytesIO()
+    with zipfile.ZipFile(archive_buffer, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+        for rel, body in files:
+            archive.writestr(rel, body)
+    return archive_buffer.getvalue()
+
+
+async def download_files(request: Request) -> Response:
+    """Return selected gemtext files as a ZIP archive."""
+    _owner_only(request)
+    data = await _read_json_body(request)
+    requested = data.get("paths")
+    if not isinstance(requested, list) or not requested:
+        raise HTTPException(400, "'paths' must be a non-empty list")
+    if len(requested) > MAX_DOWNLOAD_FILES:
+        raise HTTPException(413, f"cannot download more than {MAX_DOWNLOAD_FILES} files at once")
+    if any(not isinstance(path, str) for path in requested):
+        raise HTTPException(400, "every download path must be a string")
+
+    archive = await asyncio.to_thread(_build_download_archive, requested)
+    return Response(
+        archive,
+        media_type="application/zip",
+        headers={
+            "Content-Disposition": 'attachment; filename="gemini-pages.zip"',
+            "Cache-Control": "no-store",
+        },
+    )
+
+
 # ----------------------------------------------------------------- error handler
 
 async def http_exception_handler(request: Request, exc: HTTPException) -> Response:
@@ -563,6 +667,8 @@ routes = [
     Route("/api/files/{rel:path}", put_file, methods=["PUT"]),
     Route("/api/files/{rel:path}", post_file, methods=["POST"]),
     Route("/api/files/{rel:path}", delete_file, methods=["DELETE"]),
+    Route("/api/download", download_files, methods=["POST"]),
+    Route("/api/download/{rel:path}", download_file, methods=["GET"]),
 ]
 
 app: Starlette = Starlette(

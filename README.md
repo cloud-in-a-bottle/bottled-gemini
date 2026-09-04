@@ -66,6 +66,10 @@ restart. The toolbar links to the
 [gemtext spec](https://geminiprotocol.net/docs/gemtext-specification.gmi)
 if you need a reminder of the line shapes.
 
+You can upload one or more `.gmi` files from your local disk. Select
+files individually or use Select all, then download one file directly
+or multiple files together as a ZIP archive.
+
 The file API the editor uses is also addressable directly:
 
 - `GET /api/files`: list all `.gmi` files in the content dir.
@@ -73,11 +77,13 @@ The file API the editor uses is also addressable directly:
 - `PUT /api/files/<path>`: overwrite an existing file.
 - `POST /api/files/<path>`: create a new file.
 - `DELETE /api/files/<path>`: remove a file.
+- `GET /api/download/<path>`: download one file without altering its bytes.
+- `POST /api/download`: download selected files as a ZIP archive.
 
-All file API endpoints other than `DELETE` (which returns `204 No
-Content` on success) produce JSON. All endpoints are confined to the
-content dir (path traversal and symlinks rejected), and all require
-a Cloud in a Bottle session.
+The read and write endpoints produce JSON; `DELETE` returns `204`, and
+the download endpoints return a raw file or ZIP archive. All endpoints
+are confined to the content dir (path traversal and symlinks rejected),
+and all require a Cloud in a Bottle session.
 
 ## RSS
 

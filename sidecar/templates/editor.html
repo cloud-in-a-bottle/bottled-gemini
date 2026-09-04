@@ -26,9 +26,21 @@
         <span>// capsule files</span>
         <small>.gmi</small>
       </div>
-      <div class="sidebar-actions">
-        <button id="btn-new" type="button" class="new-file">New file</button>
-        <button id="btn-delete" type="button" class="delete-file">Delete</button>
+      <div class="sidebar-controls">
+        <div class="sidebar-actions">
+          <button id="btn-new" type="button" class="new-file">New</button>
+          <label class="upload-file" for="file-upload">Upload</label>
+          <input class="file-input" id="file-upload" type="file" accept=".gmi,text/gemini" multiple>
+          <button id="btn-delete" type="button" class="delete-file">Delete</button>
+        </div>
+        <div class="selection-actions">
+          <label class="select-all" for="select-all">
+            <input id="select-all" type="checkbox">
+            <span>Select all</span>
+          </label>
+          <button id="btn-download" type="button" disabled>Download</button>
+        </div>
+        <span id="transfer-status" class="transfer-status" aria-live="polite"></span>
       </div>
       <nav id="file-list" aria-label="Capsule files"></nav>
     </aside>
