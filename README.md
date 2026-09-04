@@ -130,7 +130,7 @@ disk); your edits survive container rebuilds.
 
 ## Files
 
-- `openhost.toml`: Cloud in a Bottle manifest.
+- `cloudinabottle.toml`: Cloud in a Bottle manifest.
 - `Dockerfile`: Debian slim + agate (sha256-pinned upstream
   release) + Python 3 + Starlette + Uvicorn for the sidecar.
 - `start.sh`: bridge entrypoint. Resolves the hostname, seeds the

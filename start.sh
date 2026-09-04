@@ -132,7 +132,7 @@ log "starting agate for $HOSTNAME on :1965"
 # than 1965 in the future (e.g. if an operator remaps the
 # [[ports]] entry). The request URL Gemini clients send to us
 # through DNS + OpenHost's publish will still carry the public
-# port. With the current openhost.toml this is harmless; leaving
+# port. With the current cloudinabottle.toml this is harmless; leaving
 # the flag on keeps things robust if the mapping ever changes.
 /usr/local/bin/agate \
     --hostname "$HOSTNAME" \

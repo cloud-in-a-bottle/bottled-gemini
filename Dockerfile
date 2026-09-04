@@ -71,7 +71,7 @@ RUN chmod +x /usr/local/bin/start.sh
 # :8080 is the HTTP landing/health/editor port (reached via the
 # OpenHost router; gated by OpenHost session auth). :1965 is the
 # Gemini port (published directly on the host by OpenHost via the
-# [[ports]] entry in openhost.toml). We document both via EXPOSE so
+# [[ports]] entry in cloudinabottle.toml). We document both via EXPOSE so
 # `docker inspect` reflects intent.
 EXPOSE 8080 1965
 
