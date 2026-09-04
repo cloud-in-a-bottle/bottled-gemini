@@ -312,8 +312,15 @@ h1 {
 .live-dot {
   width: 8px;
   height: 8px;
-  background: #76ff2d;
   border: 1px solid var(--black);
+}
+
+.live-dot.is-online {
+  background: #76ff2d;
+}
+
+.live-dot.is-offline {
+  background: #ff4d4d;
 }
 
 .endpoint-url {

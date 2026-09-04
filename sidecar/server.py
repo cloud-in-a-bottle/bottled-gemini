@@ -247,8 +247,8 @@ _LANDING_TEMPLATE = """<!doctype html>
 
         <div class="endpoint-card" aria-label="Capsule connection details">
           <div class="endpoint-topline">
-            <span class="live-dot" aria-hidden="true"></span>
-            <span>Capsule online</span>
+            <span class="live-dot {status_class}" aria-hidden="true"></span>
+            <span>{status_text}</span>
           </div>
           <code class="endpoint-url">gemini://{host}/</code>
           <dl class="endpoint-facts">
@@ -367,9 +367,12 @@ def _is_owner(request: Request) -> bool:
 async def landing(request: Request) -> HTMLResponse:
     owner = _is_owner(request)
     owner_section = _OWNER_SECTION if owner else ""
+    agate_up = await _agate_up()
     body = _LANDING_TEMPLATE.format(
         host=html.escape(_safe_hostname(), quote=True),
         owner_section=owner_section,
+        status_class="is-online" if agate_up else "is-offline",
+        status_text="Capsule online" if agate_up else "Capsule unavailable",
     )
     return HTMLResponse(body, headers={"Cache-Control": "no-store"})
 

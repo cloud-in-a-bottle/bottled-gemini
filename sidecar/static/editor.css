@@ -97,7 +97,7 @@ textarea:focus-visible,
   z-index: 1;
   width: 100%;
   height: calc(100dvh - 48px);
-  min-height: 440px;
+  min-height: 0;
   display: grid;
   grid-template-columns: 248px minmax(0, 1fr);
   grid-template-rows: 66px minmax(0, 1fr);
