@@ -1,9 +1,8 @@
 # About this capsule
 
-This capsule is running the openhost-gemini app on an OpenHost compute
-space. The code lives at:
+This capsule is served by the bottled-gemini app. The code lives at:
 
-=> https://github.com/imbue-openhost/openhost-gemini
+=> https://github.com/cloud-in-a-bottle/bottled-gemini
 
 ## What's serving this
 

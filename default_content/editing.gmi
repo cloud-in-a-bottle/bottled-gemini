@@ -3,34 +3,51 @@
 The server reads .gmi files directly off disk -- no rebuild required
 after editing. Three ways to change what this capsule serves:
 
-## 1. Built-in WYSIWYG editor (recommended)
+## 1. Built-in source editor (recommended)
 
-Sign in to your OpenHost compute space, then open:
+Sign in to your Cloud in a Bottle compute space. Visit this capsule's
+hostname over HTTPS and add /edit to the URL.
 
-=> /edit Open the editor
-
-You'll get a sidebar with all .gmi files and a contenteditable view
-that maps gemtext line shapes to editor blocks (heading, quote, list
-item, link, preformatted). Hit Save and agate serves the new content
-on the next request.
+You'll get a sidebar with all .gmi files and a plain gemtext source
+editor. Hit Save and agate serves the new content on the next request.
 
 The editor lives at the HTTP side of this app (not the Gemini side),
-behind the OpenHost session, so only the compute-space owner can use
-it.
+behind the Cloud in a Bottle session, so only the compute-space owner
+can use it.
 
-## 2. File-browser app
+## 2. Publish dated posts and RSS
 
-If you have the file-browser app installed in this compute space,
-open it and navigate to the "gemini" app's data directory. You'll
-find a "content/" folder with the .gmi files you see here. Edit,
-save, refresh your Gemini client.
-
-## 3. oh app exec (power user)
-
-You can edit files directly from the shell using the OpenHost CLI:
+Put gemlog posts under the posts directory and begin each filename with
+its publication date:
 
 ```
-oh app exec gemini -- sh -c 'cat > /data/app_data/gemini/content/index.gmi'
+posts/2026-09-04-my-first-post.gmi
+```
+
+Use a level-one heading for the post title and begin the body with a
+plain-text paragraph. The app publishes dated posts to /feed.rss and
+refreshes the feed automatically.
+
+For Newsboat, add a line like this to its urls file:
+
+```
+"exec:gemget -o - gemini://your-capsule.example/feed.rss"
+```
+
+=> /feed.rss Open the RSS feed
+
+## 3. Filestash
+
+Open the Filestash app and navigate to app_data/gemini/content. The
+.gmi files there are the pages you see here. Edit, save, and refresh
+your Gemini client.
+
+## 4. bottle app ssh (power user)
+
+You can edit files directly from the shell using the Cloud in a Bottle CLI:
+
+```
+bottle app ssh gemini -- sh -c 'cat > /data/app_data/gemini/content/index.gmi'
 ```
 
 (Paste your new content, Ctrl-D.)

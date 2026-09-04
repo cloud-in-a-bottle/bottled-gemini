@@ -15,7 +15,7 @@
 #      found; subsequent boots reuse the existing cert/key.
 #   4. Launch the HTTP sidecar (Starlette + Uvicorn) on
 #      :${STATUS_PORT:-8080} for the OpenHost router's health-check,
-#      landing page, and WYSIWYG editor.
+#      landing page, and gemtext source editor.
 #   5. Launch agate in the foreground as an unprivileged user.
 #   6. Supervise both children: if either exits, kill the other and
 #      exit so OpenHost restarts the container.
@@ -132,7 +132,7 @@ log "starting agate for $HOSTNAME on :1965"
 # than 1965 in the future (e.g. if an operator remaps the
 # [[ports]] entry). The request URL Gemini clients send to us
 # through DNS + OpenHost's publish will still carry the public
-# port. With the current openhost.toml this is harmless; leaving
+# port. With the current cloudinabottle.toml this is harmless; leaving
 # the flag on keeps things robust if the mapping ever changes.
 /usr/local/bin/agate \
     --hostname "$HOSTNAME" \

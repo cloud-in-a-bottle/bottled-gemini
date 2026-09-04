@@ -10,7 +10,7 @@
 # Base image: Debian 12 slim. We need a modern glibc (agate is linked
 # against glibc 2.35+), curl+ca-certs for downloading the agate
 # release, python3 + Starlette/Uvicorn for the HTTP sidecar (landing,
-# health-check, and WYSIWYG editor), and tini so SIGTERM from
+# health-check, and gemtext source editor), and tini so SIGTERM from
 # `docker stop` reaches both children via our start.sh supervisor.
 FROM debian:bookworm-slim
 
@@ -71,7 +71,7 @@ RUN chmod +x /usr/local/bin/start.sh
 # :8080 is the HTTP landing/health/editor port (reached via the
 # OpenHost router; gated by OpenHost session auth). :1965 is the
 # Gemini port (published directly on the host by OpenHost via the
-# [[ports]] entry in openhost.toml). We document both via EXPOSE so
+# [[ports]] entry in cloudinabottle.toml). We document both via EXPOSE so
 # `docker inspect` reflects intent.
 EXPOSE 8080 1965
 
