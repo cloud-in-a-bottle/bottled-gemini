@@ -9,7 +9,6 @@
 
 :root {
   --sky: #eef8ff;
-  --meadow: #ecffe1;
   --surface: #fcfcfc;
   --surface-raised: #ffffff;
   --surface-sunken: #f2f2f2;
@@ -48,29 +47,18 @@ body {
 
 body {
   position: relative;
-  padding: 16px 16px 32px;
+  padding: 16px;
   overflow: hidden;
-  background: linear-gradient(180deg, var(--sky) 0%, var(--sky) 80%, var(--meadow) 100%);
+  background-color: var(--sky);
+  background-image:
+    linear-gradient(rgba(0, 0, 0, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.035) 1px, transparent 1px);
+  background-size: 16px 16px;
   color: var(--text);
   font-family: var(--font-mono);
   font-size: 14px;
   font-weight: 500;
   line-height: 20px;
-}
-
-body::after {
-  position: fixed;
-  z-index: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  height: 20px;
-  background:
-    linear-gradient(90deg, transparent 0 8px, var(--grass) 8px 16px, transparent 16px 32px) 0 0 / 32px 8px repeat-x,
-    linear-gradient(90deg, var(--grass) 0 8px, transparent 8px 24px, var(--grass) 24px 32px) 0 4px / 32px 8px repeat-x,
-    linear-gradient(var(--grass), var(--grass)) 0 8px / 100% 12px no-repeat;
-  content: "";
-  pointer-events: none;
 }
 
 button,
@@ -96,7 +84,7 @@ textarea:focus-visible,
   position: relative;
   z-index: 1;
   width: 100%;
-  height: calc(100dvh - 48px);
+  height: calc(100dvh - 32px);
   min-height: 0;
   display: grid;
   grid-template-columns: 248px minmax(0, 1fr);
@@ -422,11 +410,11 @@ textarea:focus-visible,
 
 @media (max-width: 720px) {
   body {
-    padding: 8px 8px 28px;
+    padding: 8px;
   }
 
   .app {
-    height: calc(100dvh - 36px);
+    height: calc(100dvh - 16px);
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: 58px auto minmax(0, 1fr);
   }

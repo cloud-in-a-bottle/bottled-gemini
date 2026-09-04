@@ -268,18 +268,6 @@ _LANDING_TEMPLATE = """<!doctype html>
 
   <main>
     <section class="hero grid-surface">
-      <div class="sky-clouds" aria-hidden="true">
-        <svg class="cloud cloud-1" viewBox="0 0 18 9" shape-rendering="crispEdges">
-          <path d="M5 2h6v1h1v1h2v1h2v2h-1v1H2V7H1V5h1V4h2V3h1z"/>
-        </svg>
-        <svg class="cloud cloud-2" viewBox="0 0 18 9" shape-rendering="crispEdges">
-          <path d="M5 2h6v1h1v1h2v1h2v2h-1v1H2V7H1V5h1V4h2V3h1z"/>
-        </svg>
-        <svg class="cloud cloud-3" viewBox="0 0 18 9" shape-rendering="crispEdges">
-          <path d="M5 2h6v1h1v1h2v1h2v2h-1v1H2V7H1V5h1V4h2V3h1z"/>
-        </svg>
-      </div>
-
       <div class="hero-inner">
         <div class="hero-copy">
           <p class="eyebrow">// small-web publishing</p>
@@ -305,7 +293,6 @@ _LANDING_TEMPLATE = """<!doctype html>
           </dl>
         </div>
       </div>
-      <div class="horizon" aria-hidden="true"></div>
     </section>
 
     <section class="section connect" id="connect">
