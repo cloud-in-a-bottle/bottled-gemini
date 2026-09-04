@@ -31,7 +31,7 @@ class LandingTests(unittest.IsolatedAsyncioTestCase):
 
         body = response.body.decode()
         self.assertEqual(response.status_code, 200)
-        self.assertIn("protocol-specification.gmi", body)
+        self.assertIn('href="https://geminiprotocol.net/"', body)
         self.assertIn("/feed.rss", body)
         self.assertIn("Lagrange", body)
         self.assertNotIn("Newsboat", body)
@@ -50,7 +50,7 @@ class LandingTests(unittest.IsolatedAsyncioTestCase):
         response = await server.landing(request(owner=True, query=b"public=1"))
 
         self.assertEqual(response.status_code, 200)
-        self.assertIn("Protocol specification", response.body.decode())
+        self.assertIn("What is Gemini?", response.body.decode())
 
 
 if __name__ == "__main__":

@@ -259,7 +259,7 @@ _LANDING_TEMPLATE = """<!doctype html>
         <span class="brand-pixel" aria-hidden="true"></span>
         <h1>Gemini capsule</h1>
       </div>
-      <a href="https://geminiprotocol.net/docs/protocol-specification.gmi" target="_blank" rel="noopener noreferrer">Protocol specification</a>
+      <a href="https://geminiprotocol.net/" target="_blank" rel="noopener noreferrer">What is Gemini?</a>
     </header>
 
     <section class="addresses" aria-labelledby="addresses-title">
